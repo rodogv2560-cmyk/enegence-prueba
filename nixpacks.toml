@@ -1,0 +1,7 @@
+providers = ["php"]
+
+[phases.setup]
+nixPkgs = ["php82"]
+
+[start]
+cmd = 'sh -lc "cd public && php -S 0.0.0.0:${PORT}"'

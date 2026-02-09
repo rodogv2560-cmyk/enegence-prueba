@@ -1,9 +1,16 @@
 <?php
 
 function copomex_get(string $path): array {
-  $cfg = require __DIR__ . '/../.env.php';
-  $base = rtrim($cfg['copomex']['base_url'], '/');
-  $token = $cfg['copomex']['token'];
+
+  // Railway env vars
+  $base  = getenv('COPOMEX_BASE') ?: 'https://api.copomex.com/query';
+  $token = getenv('COPOMEX_TOKEN');
+
+  if (!$token) {
+    throw new Exception("Falta COPOMEX_TOKEN en variables de entorno (Railway).");
+  }
+
+  $base = rtrim($base, '/');
 
   $url = $base . '/' . ltrim($path, '/');
   $url .= (strpos($url, '?') === false ? '?' : '&') . 'token=' . urlencode($token);
@@ -21,16 +28,17 @@ function copomex_get(string $path): array {
   curl_close($ch);
 
   if ($raw === false) {
-    throw new Exception($err);
+    throw new Exception($err ?: 'Error desconocido en cURL');
   }
 
   if ($http < 200 || $http >= 300) {
-    throw new Exception($raw);
+    // Copomex suele regresar JSON con error; dejamos el raw para ver el mensaje
+    throw new Exception("HTTP $http: " . $raw);
   }
 
   $json = json_decode($raw, true);
   if (!is_array($json)) {
-    throw new Exception($raw);
+    throw new Exception("Respuesta no es JSON válido: " . $raw);
   }
 
   return $json;

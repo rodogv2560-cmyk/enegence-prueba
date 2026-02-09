@@ -1,2 +1,3 @@
 <?php
-echo "OK - Proyecto ENEGENCE PHP corriendo";
+header('Location: /estados.php');
+exit;
